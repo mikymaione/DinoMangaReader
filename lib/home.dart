@@ -14,6 +14,15 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  List<FileSystemEntity> folders = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    folders = listFolders(context);
+  }
+
   String? mangaFolder() {
     final root = Directory(FolderPicker.ROOTPATH);
 
@@ -30,7 +39,7 @@ class _HomeState extends State<Home> {
     final _mangaFolder = mangaFolder();
 
     if (_mangaFolder == null) {
-      Msg.showError(context, 'No Manga folder founded');
+      Msg.showError(context, 'No "Manga" folder founded');
       return List<FileSystemEntity>.empty();
     } else {
       final dir = Directory(_mangaFolder);
@@ -42,35 +51,24 @@ class _HomeState extends State<Home> {
     }
   }
 
-  Future<List<FileSystemEntity>> listFoldersFuture(BuildContext context) {
-    return Future.value(listFolders(context));
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dr. Dino Manga Reader'),
+        title: const Text('Dino Manga Reader'),
       ),
-      body: FutureBuilder<List<FileSystemEntity>>(
-        future: listFoldersFuture(context),
-        builder: (context, snapshot) => snapshot.hasData
-            ? ListView(
-                children: [
-                  for (final f in snapshot.requireData) ...[
-                    ListTile(
-                      title: Text(Commons.folderNameFromPath(f.path)),
-                      onTap: () => Commons.navigate(
-                        context: context,
-                        builder: (context) => Chapters(path: f.path),
-                      ),
-                    ),
-                  ],
-                ],
-              )
-            : const Center(
-                child: CircularProgressIndicator(),
+      body: ListView(
+        children: [
+          for (final f in folders) ...[
+            ListTile(
+              title: Text(Commons.folderNameFromPath(f.path)),
+              onTap: () => Commons.navigate(
+                context: context,
+                builder: (context) => Chapters(path: f.path),
               ),
+            ),
+          ],
+        ],
       ),
     );
   }

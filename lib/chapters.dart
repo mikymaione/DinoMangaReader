@@ -18,6 +18,15 @@ class Chapters extends StatefulWidget {
 }
 
 class _ChaptersState extends State<Chapters> {
+  List<FileSystemEntity> folders = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    folders = listFolders();
+  }
+
   List<FileSystemEntity> listFolders() {
     final dir = Directory(widget.path);
 
@@ -27,24 +36,28 @@ class _ChaptersState extends State<Chapters> {
     return folders;
   }
 
-  Future<List<FileSystemEntity>> listFoldersFuture() {
-    return Future.value(listFolders());
-  }
-
   Future<List<String>> loadData() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getStringList('starred') ?? [];
   }
 
-  Future<void> star(String path) async {
+  Future<void> star(String path, {bool? setValue}) async {
     final prefs = await SharedPreferences.getInstance();
 
     var folders = await loadData();
 
-    if (folders.contains(path)) {
-      folders.remove(path);
+    if (setValue == null) {
+      if (folders.contains(path)) {
+        folders.remove(path);
+      } else {
+        folders.add(path);
+      }
     } else {
-      folders.add(path);
+      if (setValue) {
+        if (!folders.contains(path)) folders.add(path);
+      } else {
+        if (folders.contains(path)) folders.remove(path);
+      }
     }
 
     await prefs.setStringList('starred', folders);
@@ -60,34 +73,35 @@ class _ChaptersState extends State<Chapters> {
       appBar: AppBar(
         title: Text('${Commons.folderNameFromPath(widget.path)} chapters'),
       ),
-      body: FutureBuilder<List<FileSystemEntity>>(
-        future: listFoldersFuture(),
-        builder: (context, snapshotFolders) => FutureBuilder<List<String>>(
-          future: loadData(),
-          builder: (context, snapshotStarred) => snapshotFolders.hasData && snapshotStarred.hasData
-              ? ListView(
-                  children: [
-                    for (final f in snapshotFolders.requireData) ...[
-                      if (f is Directory) ...[
-                        ListTile(
-                          title: Text(Commons.folderNameFromPath(f.path)),
-                          trailing: IconButton(
-                            icon: Icon(snapshotStarred.requireData.contains(f.path) ? Icons.star : Icons.star_border),
-                            onPressed: () => star(f.path),
-                          ),
-                          onTap: () => Commons.navigate(
+      body: FutureBuilder<List<String>>(
+        future: loadData(),
+        builder: (context, snapshotStarred) => snapshotStarred.hasData
+            ? ListView(
+                children: [
+                  for (final f in folders) ...[
+                    if (f is Directory) ...[
+                      ListTile(
+                        title: Text(Commons.folderNameFromPath(f.path)),
+                        trailing: IconButton(
+                          icon: Icon(snapshotStarred.requireData.contains(f.path) ? Icons.star : Icons.star_border),
+                          onPressed: () => star(f.path),
+                        ),
+                        onTap: () async {
+                          await Commons.navigate(
                             context: context,
                             builder: (context) => MangaViewer(path: f.path),
-                          ),
-                        ),
-                      ],
+                          );
+
+                          star(f.path, setValue: true);
+                        },
+                      ),
                     ],
                   ],
-                )
-              : const Center(
-                  child: CircularProgressIndicator(),
-                ),
-        ),
+                ],
+              )
+            : const Center(
+                child: CircularProgressIndicator(),
+              ),
       ),
     );
   }

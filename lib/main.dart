@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      title: 'Dr. Dino Manga Reader',
+      title: 'Dino Manga Reader',
       debugShowCheckedModeBanner: false,
       home: Home(),
     );
