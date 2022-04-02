@@ -51,7 +51,7 @@ class _MangaViewerState extends State<MangaViewer> {
     }
   }
 
-  double get pctPage => curPage / files.length;
+  double get pctPage => curPage / files.map((e) => e is File ? 1 : 0).reduce((a, b) => a + b);
 
   @override
   Widget build(BuildContext context) {
