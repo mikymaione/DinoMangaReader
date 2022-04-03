@@ -24,6 +24,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  final scrollController = ScrollController();
   List<FileSystemEntity> folders = [];
 
   @override
@@ -31,6 +32,12 @@ class _HomeState extends State<Home> {
     super.initState();
 
     folders = listFolders(context);
+  }
+
+  @override
+  void dispose() {
+    scrollController.dispose();
+    super.dispose();
   }
 
   String? mangaFolder() {
@@ -67,18 +74,23 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         title: const Text('Dino Manga Reader'),
       ),
-      body: ListView(
-        children: [
-          for (final f in folders) ...[
-            ListTile(
-              title: Text(Commons.folderNameFromPath(f.path)),
-              onTap: () => Commons.navigate(
-                context: context,
-                builder: (context) => Chapters(path: f.path),
+      body: Scrollbar(
+        controller: scrollController,
+        isAlwaysShown: true,
+        child: ListView(
+          controller: scrollController,
+          children: [
+            for (final f in folders) ...[
+              ListTile(
+                title: Text(Commons.folderNameFromPath(f.path)),
+                onTap: () async => await Commons.navigate(
+                  context: context,
+                  builder: (context) => Chapters(path: f.path),
+                ),
               ),
-            ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

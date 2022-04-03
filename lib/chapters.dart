@@ -28,6 +28,7 @@ class Chapters extends StatefulWidget {
 }
 
 class _ChaptersState extends State<Chapters> {
+  final scrollController = ScrollController();
   List<FileSystemEntity> folders = [];
 
   @override
@@ -35,6 +36,12 @@ class _ChaptersState extends State<Chapters> {
     super.initState();
 
     folders = listFolders();
+  }
+
+  @override
+  void dispose() {
+    scrollController.dispose();
+    super.dispose();
   }
 
   List<FileSystemEntity> listFolders() {
@@ -86,28 +93,33 @@ class _ChaptersState extends State<Chapters> {
       body: FutureBuilder<List<String>>(
         future: loadData(),
         builder: (context, snapshotStarred) => snapshotStarred.hasData
-            ? ListView(
-                children: [
-                  for (final f in folders) ...[
-                    if (f is Directory) ...[
-                      ListTile(
-                        title: Text(Commons.folderNameFromPath(f.path)),
-                        trailing: IconButton(
-                          icon: Icon(snapshotStarred.requireData.contains(f.path) ? Icons.star : Icons.star_border),
-                          onPressed: () => star(f.path),
-                        ),
-                        onTap: () async {
-                          await Commons.navigate(
-                            context: context,
-                            builder: (context) => MangaViewer(path: f.path),
-                          );
+            ? Scrollbar(
+                controller: scrollController,
+                isAlwaysShown: true,
+                child: ListView(
+                  controller: scrollController,
+                  children: [
+                    for (final f in folders) ...[
+                      if (f is Directory) ...[
+                        ListTile(
+                          title: Text(Commons.folderNameFromPath(f.path)),
+                          trailing: IconButton(
+                            icon: Icon(snapshotStarred.requireData.contains(f.path) ? Icons.star : Icons.star_border),
+                            onPressed: () => star(f.path),
+                          ),
+                          onTap: () async {
+                            await Commons.navigate(
+                              context: context,
+                              builder: (context) => MangaViewer(path: f.path),
+                            );
 
-                          star(f.path, setValue: true);
-                        },
-                      ),
+                            star(f.path, setValue: true);
+                          },
+                        ),
+                      ],
                     ],
                   ],
-                ],
+                ),
               )
             : const Center(
                 child: CircularProgressIndicator(),
