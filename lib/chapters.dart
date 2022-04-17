@@ -29,9 +29,9 @@ class Chapters extends StatelessWidget {
           title: Text('${Commons.folderNameFromPath(path)} chapters'),
           bottom: const TabBar(
             tabs: [
-              Tab(text: 'All'),
-              Tab(text: 'Readed'),
-              Tab(text: 'Not Readed'),
+              Tab(icon: Icon(Icons.list)),
+              Tab(icon: Icon(Icons.star)),
+              Tab(icon: Icon(Icons.star_border_outlined)),
             ],
           ),
         ),
